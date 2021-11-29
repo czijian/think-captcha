@@ -13,6 +13,7 @@ namespace think\captcha;
 
 use Exception;
 use think\Config;
+use think\facade\Cache;
 use think\Response;
 use think\Session;
 
@@ -168,9 +169,19 @@ class Captcha
      */
     public function check4api(string $code, string $key): bool
     {
+        if (!Cache::has('captcha.key.' . $key)) {
+            return false;
+        }
+
         $code = mb_strtolower($code, 'UTF-8');
 
-        return password_verify($code, $key);
+        $res = password_verify($code, $key);
+
+        if ($res) {
+            Cache::delete('captcha.key.' . $key);
+        }
+
+        return $res;
     }
 
     /**
@@ -322,7 +333,7 @@ class Captcha
         imagedestroy($this->im);
 
         $generator['base64'] = 'data:image/png;base64,' . base64_encode($content);
-
+        Cache::set('captcha.key.' . $generator['key'], $generator, 600);
         return $generator;
     }
 
