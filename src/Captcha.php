@@ -18,7 +18,7 @@ use think\Session;
 
 class Captcha
 {
-    private $im    = null; // 验证码图片实例
+    private $im = null; // 验证码图片实例
     private $color = null; // 验证码字体颜色
 
     /**
@@ -63,12 +63,12 @@ class Captcha
     /**
      * 架构方法 设置参数
      * @access public
-     * @param Config  $config
+     * @param Config $config
      * @param Session $session
      */
     public function __construct(Config $config, Session $session)
     {
-        $this->config  = $config;
+        $this->config = $config;
         $this->session = $session;
     }
 
@@ -101,11 +101,11 @@ class Captcha
         $bag = '';
 
         if ($this->math) {
-            $this->useZh  = false;
+            $this->useZh = false;
             $this->length = 5;
 
-            $x   = random_int(10, 30);
-            $y   = random_int(1, 9);
+            $x = random_int(10, 30);
+            $y = random_int(1, 9);
             $bag = "{$x} + {$y} = ";
             $key = $x + $y;
             $key .= '';
@@ -131,7 +131,7 @@ class Captcha
 
         return [
             'value' => $bag,
-            'key'   => $hash,
+            'key' => $hash,
         ];
     }
 
@@ -161,10 +161,23 @@ class Captcha
     }
 
     /**
+     * 验证验证码是否正确
+     * @access public
+     * @param string $code 用户验证码
+     * @return bool 用户验证码是否正确
+     */
+    public function check4api(string $code, string $key): bool
+    {
+        $code = mb_strtolower($code, 'UTF-8');
+
+        return password_verify($code, $key);
+    }
+
+    /**
      * 输出验证码并把验证码的值保存的session中
      * @access public
      * @param null|string $config
-     * @param bool        $api
+     * @param bool $api
      * @return Response
      */
     public function create(string $config = null, bool $api = false): Response
@@ -189,7 +202,7 @@ class Captcha
         $ttfPath = __DIR__ . '/../assets/' . ($this->useZh ? 'zhttfs' : 'ttfs') . '/';
 
         if (empty($this->fontttf)) {
-            $dir  = dir($ttfPath);
+            $dir = dir($ttfPath);
             $ttfs = [];
             while (false !== ($file = $dir->read())) {
                 if ('.' != $file[0] && substr($file, -4) == '.ttf') {
@@ -220,8 +233,8 @@ class Captcha
 
         foreach ($text as $index => $char) {
 
-            $x     = $this->fontSize * ($index + 1) * mt_rand(1.2, 1.6) * ($this->math ? 1 : 1.5);
-            $y     = $this->fontSize + mt_rand(10, 20);
+            $x = $this->fontSize * ($index + 1) * mt_rand(1.2, 1.6) * ($this->math ? 1 : 1.5);
+            $y = $this->fontSize + mt_rand(10, 20);
             $angle = $this->math ? 0 : mt_rand(-40, 40);
 
             imagettftext($this->im, $this->fontSize, $angle, $x, $y, $this->color, $fontttf, $char);
@@ -240,10 +253,9 @@ class Captcha
      * 输出验证码信息开发者自行存储校验
      * @access public
      * @param null|string $config
-     * @param bool        $api
      * @return array
      */
-    public function entry(string $config = null, bool $api = false): array
+    public function create4api(string $config = null): array
     {
         $this->configure($config);
 
@@ -265,7 +277,7 @@ class Captcha
         $ttfPath = __DIR__ . '/../assets/' . ($this->useZh ? 'zhttfs' : 'ttfs') . '/';
 
         if (empty($this->fontttf)) {
-            $dir  = dir($ttfPath);
+            $dir = dir($ttfPath);
             $ttfs = [];
             while (false !== ($file = $dir->read())) {
                 if ('.' != $file[0] && substr($file, -4) == '.ttf') {
@@ -296,8 +308,8 @@ class Captcha
 
         foreach ($text as $index => $char) {
 
-            $x     = $this->fontSize * ($index + 1) * mt_rand(1.2, 1.6) * ($this->math ? 1 : 1.5);
-            $y     = $this->fontSize + mt_rand(10, 20);
+            $x = $this->fontSize * ($index + 1) * mt_rand(1.2, 1.6) * ($this->math ? 1 : 1.5);
+            $y = $this->fontSize + mt_rand(10, 20);
             $angle = $this->math ? 0 : mt_rand(-40, 40);
 
             imagettftext($this->im, $this->fontSize, $angle, $x, $y, $this->color, $fontttf, $char);
@@ -309,7 +321,7 @@ class Captcha
         $content = ob_get_clean();
         imagedestroy($this->im);
 
-        $generator['base64'] = 'data:image/png;base64,'.base64_encode($content);
+        $generator['base64'] = 'data:image/png;base64,' . base64_encode($content);
 
         return $generator;
     }
@@ -344,7 +356,7 @@ class Captcha
         for ($px = $px1; $px <= $px2; $px = $px + 1) {
             if (0 != $w) {
                 $py = $A * sin($w * $px + $f) + $b + $this->imageH / 2; // y = Asin(ωx+φ) + b
-                $i  = (int) ($this->fontSize / 5);
+                $i = (int)($this->fontSize / 5);
                 while ($i > 0) {
                     imagesetpixel($this->im, $px + $i, $py + $i, $this->color); // 这里(while)循环画像素点比imagettftext和imagestring用字体大小一次画出（不用这while循环）性能要好很多
                     $i--;
@@ -353,18 +365,18 @@ class Captcha
         }
 
         // 曲线后部分
-        $A   = mt_rand(1, $this->imageH / 2); // 振幅
-        $f   = mt_rand(-$this->imageH / 4, $this->imageH / 4); // X轴方向偏移量
-        $T   = mt_rand($this->imageH, $this->imageW * 2); // 周期
-        $w   = (2 * M_PI) / $T;
-        $b   = $py - $A * sin($w * $px + $f) - $this->imageH / 2;
+        $A = mt_rand(1, $this->imageH / 2); // 振幅
+        $f = mt_rand(-$this->imageH / 4, $this->imageH / 4); // X轴方向偏移量
+        $T = mt_rand($this->imageH, $this->imageW * 2); // 周期
+        $w = (2 * M_PI) / $T;
+        $b = $py - $A * sin($w * $px + $f) - $this->imageH / 2;
         $px1 = $px2;
         $px2 = $this->imageW;
 
         for ($px = $px1; $px <= $px2; $px = $px + 1) {
             if (0 != $w) {
                 $py = $A * sin($w * $px + $f) + $b + $this->imageH / 2; // y = Asin(ωx+φ) + b
-                $i  = (int) ($this->fontSize / 5);
+                $i = (int)($this->fontSize / 5);
                 while ($i > 0) {
                     imagesetpixel($this->im, $px + $i, $py + $i, $this->color);
                     $i--;
@@ -397,7 +409,7 @@ class Captcha
     protected function background(): void
     {
         $path = __DIR__ . '/../assets/bgs/';
-        $dir  = dir($path);
+        $dir = dir($path);
 
         $bgs = [];
         while (false !== ($file = $dir->read())) {
