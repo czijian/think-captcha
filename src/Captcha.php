@@ -169,7 +169,7 @@ class Captcha
      */
     public function check4api(string $code, string $key): bool
     {
-        if (!Cache::has('captcha.key.' . $key)) {
+        if (!Cache::has('captcha:key:' . $key)) {
             return false;
         }
 
@@ -178,7 +178,7 @@ class Captcha
         $res = password_verify($code, $key);
 
         if ($res) {
-            Cache::delete('captcha.key.' . $key);
+            Cache::delete('captcha:key:' . $key);
         }
 
         return $res;
@@ -333,7 +333,7 @@ class Captcha
         imagedestroy($this->im);
 
         $generator['base64'] = 'data:image/png;base64,' . base64_encode($content);
-        Cache::set('captcha.key.' . $generator['key'], $generator, 600);
+        Cache::set('captcha:key:' . $generator['key'], $generator, 600);
         return $generator;
     }
 
